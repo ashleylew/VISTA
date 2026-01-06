@@ -1,0 +1,21 @@
+# Core dependencies
+openai>=1.0.0
+torch>=2.0.0
+transformers>=4.30.0
+bitsandbytes>=0.41.0
+accelerate>=1.0.0
+
+# Tokenizer dependencies
+sentencepiece>=0.1.99  # Required for Mistral and some other models
+protobuf>=3.20.0  # Required for tokenizer protobuf decoding
+
+# Optional: for .env file support
+# python-dotenv>=1.0.0
+
+# Standard library modules used (no install needed):
+# - json
+# - os
+# - logging
+# - textwrap
+# - time
+
