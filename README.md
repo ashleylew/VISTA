@@ -23,7 +23,7 @@ VISTA processes conversations through four stages:
 
 1. Clone the repository:
 ```bash
-git clone <repository-url>
+git clone https://github.com/ashleylew/VISTA.git
 cd VISTA
 ```
 
