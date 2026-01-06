@@ -1,6 +1,6 @@
 # VISTA: Verification and Inference System for Text Analysis
 
-VISTA is a multi-stage system for analyzing conversational text, extracting claims, verifying them against reference documents, and detecting contradictions.
+VISTA is a multi-stage system for analyzing conversational text, extracting claims, verifying them against reference documents, and detecting contradictions. The paper can be found on [arXiv](https://arxiv.org/abs/2510.27052). 
 
 ## Overview
 
@@ -189,12 +189,12 @@ Only the AGENT_ROLE turns will be checked in VISTA score.
 
 
 
-######### EVALUATION #########
+## Evaluation
 
 Coming soon!
 
 
-######### REANNOTATED DATA #########
+## Reannotated Data
 
 Coming soon!
 
