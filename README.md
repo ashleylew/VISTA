@@ -1,4 +1,4 @@
-# VISTA: Verification and Inference System for Text Analysis
+# VISTA: Verification in Sequential Turn-based Assessment
 
 VISTA is a multi-stage system for analyzing conversational text, extracting claims, verifying them against reference documents, and detecting contradictions. The paper can be found on [arXiv](https://arxiv.org/abs/2510.27052). 
 
