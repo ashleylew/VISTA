@@ -1,5 +1,5 @@
 import textwrap
-from config import FEW_OR_ZERO_SHOT, model_choice, USER_ROLE, AGENT_ROLE, stage_4_model_choice
+from config import FEW_OR_ZERO_SHOT, model_choice, USER_ROLE, AGENT_ROLE
 
 def _build_messages_with_examples(FEW_OR_ZERO_SHOT, instructions, examples, user_content_builder):
     messages = [{"role": "system", "content": instructions}]
@@ -355,42 +355,3 @@ def format_stage3_prompt(FEW_OR_ZERO_SHOT, instructions, examples, claim, source
         return make_stage3_mistral_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
     else:
         raise ValueError("Invalid model choice")
-
-
-# ==========================
-# Stage 4 prompt formatting
-# ==========================
-def make_stage4_deepseek_format(instructions: str, conversation_history: str, target_turn: str):
-    """
-    Format Stage 4 prompt for DeepSeek models using messages format.
-    DeepSeek models use a chat template that expects messages format.
-    """
-    messages = [
-        {"role": "system", "content": instructions},
-        {
-            "role": "user",
-            "content": f"CONVERSATION HISTORY:\n{conversation_history}\n\nTARGET TURN:\n{AGENT_ROLE}: {target_turn}"
-        }
-    ]
-    return messages
-
-def make_stage4_GPT5_format(instructions: str, conversation_history: str, target_turn: str):
-    """
-    Format Stage 4 prompt for GPT-5 using text format.
-    """
-    instructions_text = f"INSTRUCTIONS:\n{instructions}"
-    current_input = (
-        f"CONVERSATION HISTORY:\n{conversation_history}\n\n"
-        f"TARGET TURN:\n{AGENT_ROLE}: {target_turn}\n\n"
-        f"JUDGEMENT:\n"
-    )
-    prompt = f"{instructions_text}\n\n{current_input}"
-    return prompt
-
-def format_stage_4_prompt(instructions: str, conversation_history: str, target_turn: str):
-    if stage_4_model_choice == "deepseek" or stage_4_model_choice.startswith("deepseek-"):
-        return make_stage4_deepseek_format(instructions, conversation_history, target_turn)
-    elif stage_4_model_choice in ["gpt-5", "GPT-5"]:
-        return make_stage4_GPT5_format(instructions, conversation_history, target_turn)
-    else:
-        raise ValueError(f"Invalid stage_4_model_choice: {stage_4_model_choice}. Must be 'deepseek' or 'gpt-5'")

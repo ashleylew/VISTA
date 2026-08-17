@@ -1,11 +1,10 @@
 import json
 import time
-from config import BASE_FACTS, NUM_BASE_FACTS, INPUT_FILE, OUTPUT_FILE, USER_ROLE, AGENT_ROLE, FEW_OR_ZERO_SHOT, model_choice, stage_4_activation, stage_4_model_choice
+from config import BASE_FACTS, NUM_BASE_FACTS, INPUT_FILE, OUTPUT_FILE, USER_ROLE, AGENT_ROLE, FEW_OR_ZERO_SHOT, model_choice, USE_DIALOGUE_CONTEXT
 
 from stage_1 import stage_1
 from stage_2 import stage_2
 from stage_3 import stage_3
-from stage_4 import stage_4
 
 def process_conversations(input_file, output_file):
     start_time = time.time()
@@ -46,6 +45,8 @@ def process_conversations(input_file, output_file):
                             source = f"BACKGROUND KNOWLEDGE:\nN/A\n\nREFERENCE TEXT:\n{retrieved_document}" if retrieved_document not in ['NONE', 'Prompt Information'] else running_facts
                         else:
                             source = f"BACKGROUND KNOWLEDGE:\n{running_facts}\n\nREFERENCE TEXT:\n{retrieved_document}" if retrieved_document not in ['NONE', 'Prompt Information'] else running_facts
+                        if USE_DIALOGUE_CONTEXT and retrieved_document not in ['NONE', 'Prompt Information']:
+                            source = f"{source}\n\nCONVERSATION CONTEXT:\n{conversation_history}"
                         claim_category = stage_2(claim, source)
                         if claim_category.startswith('VERIFIED'):
                             claim_categories.append((claim, claim_category))                            
@@ -66,13 +67,6 @@ def process_conversations(input_file, output_file):
                 running_facts = f"{running_facts}{turn_facts}".strip()
                 turn['facts'] = running_facts
                 conversation_history = conversation_history + f"\n{AGENT_ROLE}: {turn['utterance']}"
-                
-
-                if stage_4_activation:
-                    contradiction_found, stage_4_explanation = stage_4(conversation_history, turn['utterance'])
-                    turn['contradiction_found'] = contradiction_found
-                    turn['contradiction_explanation'] = stage_4_explanation
-            
             else:
                 conversation_history = conversation_history + f"\n{USER_ROLE}: {turn['utterance']}"
 

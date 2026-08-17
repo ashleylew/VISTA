@@ -1,4 +1,3 @@
-from turtle import mode
 from openai import OpenAI
 import openai
 import torch

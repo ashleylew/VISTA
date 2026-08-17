@@ -1,12 +1,11 @@
 import os
 import logging
-from pyexpat import model
 
 # Suppress transformers warnings globally
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
-### OPTIONS for model_choice: "GPT-4o", "GPT-5", "llama", "Llama-8B", "Llama-70B", "Llama-405B", "deepseek", "deepseek-reasoner", "qwen3", "Qwen3-8B", "Qwen3-14B", "Qwen3-32B", "mistral", "Mistral-7B"
+### OPTIONS for model_choice: "GPT-4o", "GPT-5", "llama", "Llama-8B", "Llama-70B", "Llama-405B", "deepseek", "deepseek-reasoner", "qwen3", "Qwen3-8B", "Qwen3-14B", "Qwen3-32B", "mistral", "Mistral-7B", "Mixtral-8x7B", "Mixtral-8x22B"
 
 model_choice = "GPT-5"
 
@@ -14,9 +13,12 @@ model_choice = "GPT-5"
 INPUT_FILE = "../data/VISTA_input_files/FADE_formatted_dev.json"
 OUTPUT_FILE = f"../data/VISTA_output_files/TEST_{model_choice}.json"
 
-stage_4_activation = False
-### OPTIONS: "deepseek-reasoner", "gpt-5"
-stage_4_model_choice = "deepseek-reasoner"
+# Add full dialogue history to the Stage 2 (verification) and Stage 3 (classification)
+# prompts, on top of the accumulated-claims BACKGROUND KNOWLEDGE. This reproduces the
+# "VISTA+ctx" setting from the contradiction-detection analysis in the paper (Section 7.2),
+# which substantially improves contradiction detection. The default VISTA pipeline used
+# for the main results leaves this off.
+USE_DIALOGUE_CONTEXT = False
 
 # API Keys - Load from environment variables for security
 # Set these in your environment or .env file (see README.md)
@@ -30,13 +32,6 @@ if model_choice in ["gpt-4o", "gpt-5", "GPT-4o", "GPT-5", "deepseek", "deepseek-
         raise ValueError("OPENAI_API_KEY environment variable is required for OpenAI models")
     if model_choice in ["deepseek", "deepseek-reasoner"] and not DEEPSEEK_API_KEY:
         raise ValueError("DEEPSEEK_API_KEY environment variable is required for DeepSeek models")
-
-# Validate stage 4 model choice if stage 4 is activated
-if stage_4_activation and stage_4_model_choice in ["gpt-5", "GPT-5", "deepseek", "deepseek-reasoner"]:
-    if stage_4_model_choice in ["gpt-5", "GPT-5"] and not OPENAI_API_KEY:
-        raise ValueError("OPENAI_API_KEY environment variable is required for GPT-5 in stage 4")
-    if stage_4_model_choice in ["deepseek-reasoner"] and not DEEPSEEK_API_KEY:
-        raise ValueError("DEEPSEEK_API_KEY environment variable is required for DeepSeek in stage 4")
 
 # Few shot or zero shot setting
 ### OPTIONS: "few" or "zero"
