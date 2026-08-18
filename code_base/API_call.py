@@ -3,6 +3,7 @@ import openai
 import torch
 import os
 import logging
+import time
 from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
 import json
 from config import DEEPSEEK_API_KEY, BASE_URL
@@ -11,6 +12,57 @@ from config import get_llama_resources, get_qwen3_resources, get_mistral_resourc
 # Suppress transformers warnings
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 logging.getLogger("transformers").setLevel(logging.ERROR)
+
+_GEMINI_CLIENT = None
+
+def get_gemini_client():
+    global _GEMINI_CLIENT
+    if _GEMINI_CLIENT is None:
+        from google import genai
+        from config import GCP_PROJECT, GCP_LOCATION
+        _GEMINI_CLIENT = genai.Client(vertexai=True, project=GCP_PROJECT, location=GCP_LOCATION)
+    return _GEMINI_CLIENT
+
+
+def call_gemini(messages, max_tokens, model_choice):
+    """
+    Call a Gemini model via Vertex AI. Converts the shared messages format
+    (list of {"role", "content"} dicts) into Gemini's Content objects, folding
+    any "system" message into a system_instruction.
+    """
+    from google.genai import types
+    client = get_gemini_client()
+
+    system_txt, contents = "", []
+    for m in messages:
+        if m["role"] == "system":
+            system_txt += m["content"] + "\n"
+        else:
+            role = "model" if m["role"] == "assistant" else "user"
+            contents.append(types.Content(role=role, parts=[types.Part(text=m["content"])]))
+
+    cfg = types.GenerateContentConfig(max_output_tokens=max_tokens, temperature=0)
+    if system_txt:
+        cfg.system_instruction = system_txt.strip()
+
+    resp = None
+    for attempt in range(6):
+        try:
+            resp = client.models.generate_content(model=model_choice, contents=contents, config=cfg)
+            break
+        except Exception as e:
+            if "429" in str(e) and attempt < 5:
+                wait = min(2 ** attempt, 30)
+                logging.warning("Gemini 429 rate-limit (attempt %d/6); retrying in %ds", attempt + 1, wait)
+                time.sleep(wait)
+                continue
+            raise
+
+    if not resp.candidates or not resp.candidates[0].content:
+        return ""
+    parts = resp.candidates[0].content.parts or []
+    return "".join(p.text for p in parts if getattr(p, "text", None)).strip()
+
 
 def call_deepseek(messages, model_choice):
     client = OpenAI(api_key=DEEPSEEK_API_KEY, base_url=BASE_URL)
@@ -195,6 +247,8 @@ def call_mistral(input_text, max_tokens, model_choice):
 def call_model(prompt, max_tokens, model_choice):
     if model_choice == "deepseek" or model_choice == "deepseek-reasoner":
         return call_deepseek(prompt, model_choice)
+    elif model_choice.startswith("gemini"):
+        return call_gemini(prompt, max_tokens, model_choice)
     elif model_choice in ["gpt-4o", "GPT-4o"]:
         return call_gpt4o(prompt, model_choice)
     elif model_choice in ["gpt-5", "GPT-5"]:

@@ -5,13 +5,19 @@ import logging
 os.environ["TRANSFORMERS_VERBOSITY"] = "error"
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
-### OPTIONS for model_choice: "GPT-4o", "GPT-5", "llama", "Llama-8B", "Llama-70B", "Llama-405B", "deepseek", "deepseek-reasoner", "qwen3", "Qwen3-8B", "Qwen3-14B", "Qwen3-32B", "mistral", "Mistral-7B", "Mixtral-8x7B", "Mixtral-8x22B"
+### OPTIONS for model_choice: "GPT-4o", "GPT-5", "llama", "Llama-8B", "Llama-70B", "Llama-405B", "deepseek", "deepseek-reasoner", "gemini-*" (e.g. "gemini-3.5-flash-lite"), "qwen3", "Qwen3-8B", "Qwen3-14B", "Qwen3-32B", "mistral", "Mistral-7B", "Mixtral-8x7B", "Mixtral-8x22B"
 
-model_choice = "GPT-5"
+model_choice = "gemini-3.5-flash-lite"
 
 # File paths for input and output
-INPUT_FILE = "../data/VISTA_input_files/FADE_formatted_dev.json"
-OUTPUT_FILE = f"../data/VISTA_output_files/TEST_{model_choice}.json"
+INPUT_FILE = "/home/lewis.2799/VISTA/data/reannotated_data/human_eval_VISTA_input.json"
+OUTPUT_FILE = f"../data/VISTA_output_files/make_sure_gemini_works_{model_choice}.json"
+
+# --- Gemini / Vertex AI ---
+# Gemini models go through Vertex AI (google-genai client with vertexai=True), not a
+# plain Gemini Developer API key. Set these in your environment (see README.md).
+GCP_PROJECT = os.getenv("GCP_PROJECT", "")
+GCP_LOCATION = os.getenv("GCP_LOCATION", "global")
 
 # Add full dialogue history to the Stage 2 (verification) and Stage 3 (classification)
 # prompts, on top of the accumulated-claims BACKGROUND KNOWLEDGE. This reproduces the
@@ -32,6 +38,9 @@ if model_choice in ["gpt-4o", "gpt-5", "GPT-4o", "GPT-5", "deepseek", "deepseek-
         raise ValueError("OPENAI_API_KEY environment variable is required for OpenAI models")
     if model_choice in ["deepseek", "deepseek-reasoner"] and not DEEPSEEK_API_KEY:
         raise ValueError("DEEPSEEK_API_KEY environment variable is required for DeepSeek models")
+
+if model_choice.startswith("gemini") and not GCP_PROJECT:
+    raise ValueError("GCP_PROJECT environment variable is required for Gemini/Vertex models")
 
 # Few shot or zero shot setting
 ### OPTIONS: "few" or "zero"

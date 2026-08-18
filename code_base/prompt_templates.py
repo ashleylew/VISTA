@@ -157,7 +157,7 @@ def format_prompt(FEW_OR_ZERO_SHOT, instructions, examples, conversation_history
         return make_llama_format(FEW_OR_ZERO_SHOT, instructions, examples, conversation_history, current_turn)
     elif model_choice in ["gpt-5", "GPT-5"]:
         return make_GPT5_format(FEW_OR_ZERO_SHOT, instructions, examples, conversation_history, current_turn)
-    elif model_choice in ["gpt-4o", "GPT-4o", "deepseek", "deepseek-reasoner", "qwen3"] or model_choice.startswith("Qwen3-"):
+    elif model_choice in ["gpt-4o", "GPT-4o", "deepseek", "deepseek-reasoner", "qwen3"] or model_choice.startswith("Qwen3-") or model_choice.startswith("gemini"):
         return make_messages_format(FEW_OR_ZERO_SHOT, instructions, examples, conversation_history, current_turn)
     elif model_choice == "mistral" or model_choice.startswith("Mistral-") or model_choice.startswith("Mixtral-"):
         return make_mistral_format(FEW_OR_ZERO_SHOT, instructions, examples, conversation_history, current_turn)
@@ -253,7 +253,7 @@ def format_stage2_prompt(FEW_OR_ZERO_SHOT, instructions, examples, claim, source
         return make_stage2_llama_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
     elif model_choice in ["gpt-5", "GPT-5"]:
         return make_stage2_GPT5_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
-    elif model_choice in ["gpt-4o", "GPT-4o", "deepseek", "deepseek-reasoner", "qwen3"] or model_choice.startswith("Qwen3-"):
+    elif model_choice in ["gpt-4o", "GPT-4o", "deepseek", "deepseek-reasoner", "qwen3"] or model_choice.startswith("Qwen3-") or model_choice.startswith("gemini"):
         return make_stage2_messages_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
     elif model_choice == "mistral" or model_choice.startswith("Mistral-") or model_choice.startswith("Mixtral-"):
         return make_stage2_mistral_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
@@ -349,7 +349,7 @@ def format_stage3_prompt(FEW_OR_ZERO_SHOT, instructions, examples, claim, source
         return make_stage3_llama_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
     elif model_choice in ["gpt-5", "GPT-5"]:
         return make_stage3_GPT5_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
-    elif model_choice in ["gpt-4o", "GPT-4o", "deepseek", "deepseek-reasoner", "qwen3"] or model_choice.startswith("Qwen3-"):
+    elif model_choice in ["gpt-4o", "GPT-4o", "deepseek", "deepseek-reasoner", "qwen3"] or model_choice.startswith("Qwen3-") or model_choice.startswith("gemini"):
         return make_stage3_messages_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)
     elif model_choice == "mistral" or model_choice.startswith("Mistral-") or model_choice.startswith("Mixtral-"):
         return make_stage3_mistral_format(FEW_OR_ZERO_SHOT, instructions, examples, claim, source)

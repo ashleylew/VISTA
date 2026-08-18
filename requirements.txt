@@ -1,5 +1,6 @@
 # Core dependencies
 openai>=1.0.0
+google-genai>=0.1.0  # Required for Gemini models (via Vertex AI)
 torch>=2.0.0
 transformers>=4.30.0
 bitsandbytes>=0.41.0
