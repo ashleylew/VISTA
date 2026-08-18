@@ -41,6 +41,10 @@ pip install -r requirements.txt
 # Set your API keys as environment variables
 export OPENAI_API_KEY="your-openai-api-key"
 export DEEPSEEK_API_KEY="your-deepseek-api-key"
+
+# Gemini (Vertex AI) - see note below on authentication
+export GCP_PROJECT="your-gcp-project-id"
+export GCP_LOCATION="global"   # optional, defaults to "global"
 ```
 
 Alternatively, create a `.env` file in the root directory:
@@ -48,7 +52,20 @@ Alternatively, create a `.env` file in the root directory:
 OPENAI_API_KEY=your-openai-api-key
 DEEPSEEK_API_KEY=your-deepseek-api-key
 DEEPSEEK_BASE_URL=https://api.deepseek.com
+GCP_PROJECT=your-gcp-project-id
+GCP_LOCATION=global
 ```
+
+Gemini models go through Vertex AI (`google-genai` client with `vertexai=True`), not the plain Gemini Developer API key. This means you also need:
+- The `gcloud` CLI, and Application Default Credentials for an account with access to `GCP_PROJECT`:
+  ```bash
+  gcloud auth application-default login --no-browser   # headless/remote servers
+  gcloud auth application-default set-quota-project "$GCP_PROJECT"
+  ```
+- The Vertex AI API enabled on that project:
+  ```bash
+  gcloud services enable aiplatform.googleapis.com --project "$GCP_PROJECT"
+  ```
 
 Then load it using `python-dotenv` (add to requirements.txt if using this method).
 
@@ -91,6 +108,7 @@ The script will:
 - `gpt-5` - OpenAI GPT-5
 - `deepseek` - DeepSeek Chat
 - `deepseek-reasoner` - DeepSeek Reasoner
+- `gemini-*` - Any Gemini model available on Vertex AI, e.g. `gemini-3.5-flash-lite` (requires `GCP_PROJECT`, see Installation)
 
 **Local models (require GPU):**
 - `llama`, `Llama-8B`, `Llama-70B`, `Llama-405B` - Meta Llama3.1 models. "llama" defaults to Llama3.1-70B.
@@ -157,8 +175,13 @@ VISTA/
 │   ├── stage_1.py           # Claim extraction
 │   ├── stage_2.py           # Claim verification
 │   └── stage_3.py           # Unverifiable claim categorization
-├── data/                    # Data directory
-├── evaluation/               # Evaluation scripts/outputs
+├── data/
+│   └── reannotated_data/
+│       └── human_eval_VISTA_input.json  # Released human-eval dataset
+├── evaluation/
+│   ├── config.py             # Which VISTA output file(s) to evaluate
+│   ├── normalize.py          # Cleans raw claim categories from VISTA output
+│   └── metrics.py            # Claim stats, VISTA score, optional gold comparison
 └── README.md                # This file
 ```
 
@@ -189,11 +212,37 @@ Only the AGENT_ROLE turns will be checked in VISTA score.
 
 ## Evaluation
 
-Coming soon!
+Once you've run `run_metric.py` and have a VISTA output file (or several, from
+different models), `evaluation/` turns the raw per-claim categories into a
+clean summary and a VISTA score.
 
+```bash
+cd evaluation
+python normalize.py   # cleans raw claim categories -> normalized/{file}_NORMALIZED.json
+python metrics.py     # computes stats + VISTA score  -> summaries/{file}_SUMMARY.json
+```
+
+Configure which output file(s) to process in `evaluation/config.py`, either by
+listing them explicitly (`MODEL_OUTPUT_FILES`) or pointing `OUTPUT_DIR` at a
+folder to process everything in it.
+
+`metrics.py` reports, per file:
+- Total claims, average claims per turn, and a breakdown by category
+- The overall **VISTA score**: the proportion of all claims that are
+  VISTA-safe (`VERIFIED`, `ABSTENTION`, or `OUT-OF-SCOPE`)
+- A per-turn VISTA score and faithful/hallucinated call, written to
+  `summaries/{file}_SUMMARY.json`
+- If the data has gold labels (a `label` or `gold_label` field per turn),
+  accuracy/precision/recall/F1 against them -- skipped otherwise, since new
+  data you run VISTA on won't generally have ground truth
 
 ## Reannotated Data
 
-Coming soon!
+`data/reannotated_data/human_eval_VISTA_input.json` is the human-reannotated
+evaluation set from the paper: each scored turn carries `human_claims` (the
+claims a human annotator extracted, with their judgement) and a `gold_label`
+for the turn as a whole. It's also the default `INPUT_FILE` in
+`code_base/config.py`, so it doubles as a ready-to-use example input for the
+main pipeline.
 
 

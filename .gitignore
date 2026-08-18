@@ -38,13 +38,19 @@ ENV/
 .env.local
 config_local.py
 
-# Data files (optional - uncomment if you don't want to track data)
-# data/
-# evaluation/
+# Data files -- only the released human-eval dataset is tracked; other
+# dataset/output files used for local development are not.
+data/*
+!data/reannotated_data
+data/reannotated_data/*
+!data/reannotated_data/human_eval_VISTA_input.json
 
 # Output files
 output_files/
-*.json
+
+# Generated evaluation artifacts (recreate with normalize.py / metrics.py)
+evaluation/normalized/
+evaluation/summaries/
 
 # OS
 .DS_Store
